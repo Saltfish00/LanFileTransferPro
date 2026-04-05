@@ -24,14 +24,6 @@
 
 ## 项目预览
 
-推荐在 GitHub 仓库中补充以下截图到 `assets/` 目录：
-
-- `assets/desktop-preview.png`
-- `assets/mobile-preview.png`
-- `assets/qr-preview.png`
-
-然后在 README 中加入：
-
 ```md
 ![桌面端预览](assets/desktop-preview.png)
 ![手机端预览](assets/mobile-preview.png)
@@ -127,67 +119,6 @@ dist/LanFileTransferPro/LanFileTransferPro.exe
    - 可下载电脑共享文件
 4. 若不是同一局域网：
    - 页面提示先连接同一 Wi‑Fi
-
----
-
-## 发布说明
-
-### GitHub 发布建议
-
-建议仓库名称：
-
-```text
-lan-file-transfer-pro
-```
-
-建议首次提交：
-
-```bash
-git init
-git add .
-git commit -m "feat: initial release of Lan File Transfer Pro"
-```
-
-建议打 Tag：
-
-```bash
-git tag v1.0.0
-git push origin main --tags
-```
-
-### GitHub Release 建议内容
-
-**标题：**
-
-```text
-Lan File Transfer Pro v1.0.0
-```
-
-**发布说明模板：**
-
-```md
-## Lan File Transfer Pro v1.0.0
-
-### 新增
-- 明亮高级风格桌面 UI
-- 手机网页上传与下载
-- 上传进度条
-- 拖拽上传
-- 二维码访问
-- 自动判断同一局域网
-- Windows exe 打包支持
-
-### 使用方式
-1. 下载 exe 或源码
-2. 在电脑端启动服务
-3. 手机扫码访问
-4. 在同一局域网下完成文件传输
-
-### 注意事项
-- 请把二维码显示 IP 设置为电脑的局域网 IP
-- 首次运行时，Windows 防火墙可能会弹出权限提示
-- 手机与电脑必须连接同一个 Wi‑Fi
-```
 
 ---
 
