@@ -163,4 +163,4 @@ dist/LanFileTransferPro/LanFileTransferPro.exe
 
 ## License
 
-你可以按自己的需要补充 MIT License 或其他许可证。
+MIT License
