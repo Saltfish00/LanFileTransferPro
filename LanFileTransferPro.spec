@@ -1,34 +1,43 @@
 # -*- mode: python ; coding: utf-8 -*-
-from pathlib import Path
 
-project_dir = Path(__file__).resolve().parent
-icon_path = project_dir / 'assets' / 'app.ico'
+from pathlib import Path
+import os
+
+project_dir = Path(os.getcwd()).resolve()
+
+block_cipher = None
 
 a = Analysis(
-    ['main.py'],
+    [str(project_dir / "main.py")],
     pathex=[str(project_dir)],
     binaries=[],
     datas=[
-        (str(project_dir / 'assets'), 'assets'),
-        (str(project_dir / 'uploads'), 'uploads'),
-        (str(project_dir / 'shared_files'), 'shared_files'),
-        (str(project_dir / 'config.json'), '.'),
+        (str(project_dir / "assets"), "assets"),
+        (str(project_dir / "shared_files"), "shared_files"),
+        (str(project_dir / "uploads"), "uploads"),
+        (str(project_dir / "config.json"), "."),
     ],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
     excludes=[],
+    win_no_prefer_redirects=False,
+    win_private_assemblies=False,
+    cipher=block_cipher,
     noarchive=False,
 )
-pyz = PYZ(a.pure)
+
+pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
+
 exe = EXE(
     pyz,
     a.scripts,
     a.binaries,
+    a.zipfiles,
     a.datas,
     [],
-    name='LanFileTransferPro',
+    name="LanFileTransferPro",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -36,5 +45,5 @@ exe = EXE(
     upx_exclude=[],
     runtime_tmpdir=None,
     console=False,
-    icon=str(icon_path),
+    icon=str(project_dir / "assets" / "app.ico"),
 )
