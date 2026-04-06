@@ -44,11 +44,11 @@ LanFileTransferPro/
 ├─ assets/
 │  ├─ app.ico
 │  └─ .gitkeep
-├─ uploads/
-│  └─ .gitkeep
-├─ shared_files/
-│  └─ .gitkeep
 └─ config.json
+
+# 运行后会在 exe 同目录自动生成
+# uploads/
+# shared_files/
 ```
 
 ---
@@ -85,16 +85,10 @@ build_exe.bat
 pyinstaller LanFileTransferPro.spec --clean
 ```
 
-打包完成后，生成目录通常在：
+打包完成后，主程序通常在：
 
 ```text
-dist/LanFileTransferPro/
-```
-
-主程序：
-
-```text
-dist/LanFileTransferPro/LanFileTransferPro.exe
+dist/LanFileTransferPro.exe
 ```
 
 ---
@@ -104,11 +98,12 @@ dist/LanFileTransferPro/LanFileTransferPro.exe
 ### 桌面端
 
 1. 启动程序
-2. 点击“显示 / 隐藏配置”展开设置
-3. 设置二维码显示 IP、端口、上传目录、共享下载目录
-4. 点击“启动服务”
-5. 点击“生成二维码”
-6. 把想让手机下载的文件放到共享目录，或点击“导入共享文件”
+2. 点击“配置”展开设置
+3. 二维码显示 IP 可填 `auto`，程序每次启动会自动读取当前电脑 IP
+4. 上传目录和共享下载目录默认都相对 exe 自动创建，也可以手动改到其他位置
+5. 点击“启动服务”
+6. 点击“生成二维码”
+7. 把想让手机下载的文件放到共享目录，或点击“导入共享文件”
 
 ### 手机端
 
@@ -145,6 +140,14 @@ dist/LanFileTransferPro/LanFileTransferPro.exe
 ### 3. 手机端拖拽上传为什么有时不可用？
 
 拖拽能力取决于手机浏览器。多数手机浏览器更适合点击后选择文件。
+
+### 4. 为什么换电脑后配置还能正常保存？
+
+因为 `config.json` 不再打进 exe，程序会把配置固定保存在 exe 同目录。
+
+### 5. 为什么没有 H 盘也能运行？
+
+因为默认上传目录和共享目录都改成了相对 exe 的 `uploads` 和 `shared_files`，程序会自动创建。
 
 ---
 

@@ -11,7 +11,7 @@ pyinstaller LanFileTransferPro.spec --clean
 if errorlevel 1 goto :error
 
 echo [3/3] Done.
-echo Output: dist\LanFileTransferPro\LanFileTransferPro.exe
+echo Output: dist\LanFileTransferPro.exe
 pause
 exit /b 0
 

@@ -13,9 +13,6 @@ a = Analysis(
     binaries=[],
     datas=[
         (str(project_dir / "assets"), "assets"),
-        (str(project_dir / "shared_files"), "shared_files"),
-        (str(project_dir / "uploads"), "uploads"),
-        (str(project_dir / "config.json"), "."),
     ],
     hiddenimports=[],
     hookspath=[],

@@ -19,11 +19,21 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
 APP_NAME = "Lan File Transfer Pro"
-BASE_DIR = Path(__file__).resolve().parent
-CONFIG_PATH = BASE_DIR / "config.json"
+
+
+def get_app_dir() -> Path:
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).resolve().parent
+    return Path(__file__).resolve().parent
+
+
+APP_DIR = get_app_dir()
+BASE_DIR = APP_DIR
+CONFIG_PATH = APP_DIR / "config.json"
+ASSETS_DIR = Path(getattr(sys, "_MEIPASS", APP_DIR)) / "assets"
 DEFAULTS = {
     "bind_ip": "0.0.0.0",
-    "display_ip": "",
+    "display_ip": "auto",
     "port": 8000,
     "subnet_mask": "255.255.255.0",
     "upload_dir": str(BASE_DIR / "uploads"),
@@ -51,7 +61,25 @@ def get_local_ip() -> str:
     return ip
 
 
+def normalize_dir(path_value: str, default_dir: Path) -> str:
+    raw = (path_value or "").strip()
+    if not raw:
+        return str(default_dir)
+    path = Path(raw)
+    if not path.is_absolute():
+        path = APP_DIR / path
+    return str(path.resolve())
+
+
+def get_display_ip() -> str:
+    value = str(CONFIG.get("display_ip", "auto") or "auto").strip()
+    if value.lower() in ("", "auto"):
+        return get_local_ip()
+    return value
+
+
 def load_config() -> None:
+    CONFIG.clear()
     CONFIG.update(DEFAULTS)
     if CONFIG_PATH.exists():
         try:
@@ -60,10 +88,16 @@ def load_config() -> None:
                 CONFIG.update(data)
         except Exception:
             pass
-    if not CONFIG.get("display_ip"):
-        CONFIG["display_ip"] = get_local_ip()
+
+    CONFIG["upload_dir"] = normalize_dir(CONFIG.get("upload_dir", ""), APP_DIR / "uploads")
+    CONFIG["download_dir"] = normalize_dir(CONFIG.get("download_dir", ""), APP_DIR / "shared_files")
+
+    display_ip = str(CONFIG.get("display_ip", "auto") or "auto").strip()
+    CONFIG["display_ip"] = "auto" if display_ip.lower() in ("", "auto") else display_ip
+
     ensure_dir(CONFIG["upload_dir"])
     ensure_dir(CONFIG["download_dir"])
+    save_config()
 
 
 def save_config() -> None:
@@ -351,7 +385,7 @@ def apply_max_size():
 
 @app.route("/")
 def index():
-    display_ip = CONFIG["display_ip"] or get_local_ip()
+    display_ip = get_display_ip()
     client_ip = client_ip_from_request()
     network = build_network(display_ip, CONFIG["subnet_mask"])
     same_lan = is_same_lan(client_ip, display_ip, CONFIG["subnet_mask"])
@@ -370,7 +404,7 @@ def index():
 
 @app.route("/api/upload", methods=["POST"])
 def api_upload():
-    display_ip = CONFIG["display_ip"] or get_local_ip()
+    display_ip = get_display_ip()
     client_ip = client_ip_from_request()
     if not is_same_lan(client_ip, display_ip, CONFIG["subnet_mask"]):
         return jsonify({"ok": False, "message": "请连接与电脑相同的局域网。"}), 403
@@ -392,7 +426,7 @@ def api_upload():
 
 @app.route("/download/<path:filename>")
 def download_file(filename):
-    display_ip = CONFIG["display_ip"] or get_local_ip()
+    display_ip = get_display_ip()
     if not is_same_lan(client_ip_from_request(), display_ip, CONFIG["subnet_mask"]):
         return redirect(url_for("index"))
     return send_from_directory(CONFIG["download_dir"], filename, as_attachment=True)
@@ -550,7 +584,7 @@ class DesktopApp:
 
     def _build_config_contents(self, parent) -> None:
         tk.Label(parent, text="配置面板", bg="#ffffff", fg="#162132", font=("Segoe UI", 12, "bold")).grid(row=0, column=0, columnspan=3, sticky="w", padx=18, pady=(16,4))
-        tk.Label(parent, text=" ", bg="#ffffff", fg="#748297", font=("Segoe UI", 10)).grid(row=1, column=0, columnspan=3, sticky="w", padx=18, pady=(0,12))
+        tk.Label(parent, text="二维码显示 IP 可填 auto，程序每次启动会自动读取当前电脑 IP。", bg="#ffffff", fg="#748297", font=("Segoe UI", 10)).grid(row=1, column=0, columnspan=3, sticky="w", padx=18, pady=(0,12))
         rows = [
             ("服务绑定 IP", self.bind_ip_var, None),
             ("二维码显示 IP", self.display_ip_var, None),
@@ -580,7 +614,8 @@ class DesktopApp:
             self.config_visible = True
 
     def choose_dir(self, variable: tk.StringVar) -> None:
-        path = filedialog.askdirectory(initialdir=variable.get() or str(BASE_DIR))
+        initial_dir = variable.get().strip() or str(APP_DIR)
+        path = filedialog.askdirectory(initialdir=initial_dir)
         if path:
             variable.set(path)
             self.refresh_shared_files_box()
@@ -600,7 +635,10 @@ class DesktopApp:
 
     def refresh_network_hint(self) -> None:
         try:
-            network = build_network(self.display_ip_var.get().strip(), self.mask_var.get().strip())
+            display_ip = self.display_ip_var.get().strip()
+            if display_ip.lower() in ("", "auto"):
+                display_ip = get_local_ip()
+            network = build_network(display_ip, self.mask_var.get().strip())
             tip = f"程序将按局域网 {network} 判断手机与电脑是否在同一网络。"
             self.network_hint.config(text=tip)
             self.stat_network.config(text=str(network))
@@ -610,7 +648,8 @@ class DesktopApp:
 
     def refresh_shared_files_box(self) -> None:
         self.shared_box.delete(0, "end")
-        CONFIG["download_dir"] = self.download_dir_var.get()
+        CONFIG["download_dir"] = normalize_dir(self.download_dir_var.get(), APP_DIR / "shared_files")
+        self.download_dir_var.set(CONFIG["download_dir"])
         ensure_dir(CONFIG["download_dir"])
         for item in list_shared_files():
             self.shared_box.insert("end", f"{item['name']}    [{item['size']}]")
@@ -631,24 +670,34 @@ class DesktopApp:
 
     def validate_and_apply_config(self) -> bool:
         try:
-            ipaddress.ip_address(self.display_ip_var.get().strip())
-            build_network(self.display_ip_var.get().strip(), self.mask_var.get().strip())
+            display_ip = self.display_ip_var.get().strip() or "auto"
+            if display_ip.lower() not in ("auto",):
+                ipaddress.ip_address(display_ip)
+                network_ip = display_ip
+            else:
+                network_ip = get_local_ip()
+            build_network(network_ip, self.mask_var.get().strip())
             port = int(self.port_var.get().strip())
             max_mb = int(self.max_mb_var.get().strip())
             if not 1 <= port <= 65535:
                 raise ValueError("端口必须在 1~65535 之间")
             if max_mb <= 0:
                 raise ValueError("大小限制必须大于 0")
+            bind_ip = self.bind_ip_var.get().strip() or "0.0.0.0"
             CONFIG.update({
-                "bind_ip": self.bind_ip_var.get().strip(),
-                "display_ip": self.display_ip_var.get().strip(),
+                "bind_ip": bind_ip,
+                "display_ip": "auto" if display_ip.lower() in ("", "auto") else display_ip,
                 "port": port,
                 "subnet_mask": self.mask_var.get().strip(),
-                "upload_dir": self.upload_dir_var.get().strip(),
-                "download_dir": self.download_dir_var.get().strip(),
+                "upload_dir": normalize_dir(self.upload_dir_var.get(), APP_DIR / "uploads"),
+                "download_dir": normalize_dir(self.download_dir_var.get(), APP_DIR / "shared_files"),
                 "max_file_mb": max_mb,
                 "allow_extensions": self.ext_var.get().strip() or "*",
             })
+            self.bind_ip_var.set(CONFIG["bind_ip"])
+            self.display_ip_var.set(CONFIG["display_ip"])
+            self.upload_dir_var.set(CONFIG["upload_dir"])
+            self.download_dir_var.set(CONFIG["download_dir"])
             ensure_dir(CONFIG["upload_dir"])
             ensure_dir(CONFIG["download_dir"])
             save_config()
@@ -671,7 +720,7 @@ class DesktopApp:
             APP_STATE.update({
                 "server": server,
                 "running": True,
-                "server_url": f"http://{CONFIG['display_ip']}:{CONFIG['port']}/",
+                "server_url": f"http://{get_display_ip()}:{CONFIG['port']}/",
             })
             self.url_var.set(APP_STATE["server_url"])
             self.status_var.set("服务运行中")
@@ -705,7 +754,7 @@ class DesktopApp:
     def generate_qr(self) -> None:
         if not self.validate_and_apply_config():
             return
-        url = f"http://{CONFIG['display_ip']}:{CONFIG['port']}/"
+        url = f"http://{get_display_ip()}:{CONFIG['port']}/"
         APP_STATE["server_url"] = url
         self.url_var.set(url)
         self.stat_url.config(text=self.url_var.get())
@@ -717,7 +766,7 @@ class DesktopApp:
         self.log(f"二维码已生成：{url}")
 
 def create_app_icon() -> None:
-    icon_path = BASE_DIR / "assets" / "app.ico"
+    icon_path = ASSETS_DIR / "app.ico"
     ensure_dir(str(icon_path.parent))
     if icon_path.exists():
         return
