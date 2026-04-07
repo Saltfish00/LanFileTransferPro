@@ -166,5 +166,5 @@ dist/LanFileTransferPro.exe
 
 ## License
 
-Apache License
+Apache-2.0 License
 
