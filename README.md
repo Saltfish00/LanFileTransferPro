@@ -166,5 +166,5 @@ dist/LanFileTransferPro.exe
 
 ## License
 
-MIT License
+Apache License
 
