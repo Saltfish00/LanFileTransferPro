@@ -24,10 +24,10 @@
 
 ## 项目预览
 
-```md
-![desktop](https://raw.githubusercontent.com/Saltfish00/LanFileTransferPro/main/assets/desktop-preview.png)
-![mobile](https://raw.githubusercontent.com/Saltfish00/LanFileTransferPro/main/assets/mobile-preview.png)
-```
+
+![desktop](assets/desktop-preview.png)
+![mobile](assets/mobile-preview.png)
+
 
 ---
 
