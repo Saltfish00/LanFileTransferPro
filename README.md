@@ -24,8 +24,10 @@
 
 ## 项目预览
 
-
+- 桌面预览图
 ![desktop](assets/desktop-preview.png)
+
+- 手机预览图
 ![mobile](assets/mobile-preview.png)
 
 
