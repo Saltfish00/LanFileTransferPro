@@ -25,8 +25,8 @@
 ## 项目预览
 
 ```md
-![桌面端预览](assets/desktop-preview.png)
-![手机端预览](assets/mobile-preview.png)
+![桌面端预览](https://raw.githubusercontent.com/Saltfish00/LanFileTransferPro/main/assets/desktop-preview.png))
+![手机端预览](https://raw.githubusercontent.com/Saltfish00/LanFileTransferPro/main/assets/mobile-preview.png)
 ```
 
 ---
